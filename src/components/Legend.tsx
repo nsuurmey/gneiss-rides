@@ -1,10 +1,11 @@
-import { EnrichedPoint, GeoUnit } from '../types';
+import { EnrichedPoint, GeoUnit, ColorMode, getGeoColor } from '../types';
 
 interface Props {
   points: EnrichedPoint[];
+  colorMode: ColorMode;
 }
 
-export default function Legend({ points }: Props) {
+export default function Legend({ points, colorMode }: Props) {
   // Collect unique geologic units by formation name
   const unitMap = new Map<string, GeoUnit>();
   for (const p of points) {
@@ -25,7 +26,7 @@ export default function Legend({ points }: Props) {
         <div key={u.formationName} className="flex items-center gap-1.5 text-xs text-gray-300">
           <span
             className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: u.ageColor }}
+            style={{ backgroundColor: getGeoColor(u, colorMode) }}
           />
           <span className="font-medium">{u.formationName}</span>
           <span className="text-gray-500">
