@@ -35,6 +35,7 @@ export default function MapView({ points, colorMode, opacity, activePointStore }
   const mapRef = useRef<L.Map | null>(null);
   const linesRef = useRef<L.Polyline[]>([]);
   const ghostMarkerRef = useRef<L.CircleMarker | null>(null);
+  const canvasRendererRef = useRef<L.Canvas | null>(null);
   const setActivePoint = useSetActivePoint(activePointStore);
   const activeIdx = useActivePoint(activePointStore);
 
@@ -42,9 +43,15 @@ export default function MapView({ points, colorMode, opacity, activePointStore }
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
+    // Use Canvas renderer so polylines render onto a <canvas> element
+    // that html2canvas can capture (SVG overlays are not captured).
+    const renderer = L.canvas();
+    canvasRendererRef.current = renderer;
+
     mapRef.current = L.map(containerRef.current, {
       zoomControl: true,
       attributionControl: true,
+      renderer,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -108,6 +115,7 @@ export default function MapView({ points, colorMode, opacity, activePointStore }
           fillColor: '#10b981',
           fillOpacity: 0.9,
           weight: 2,
+          renderer: canvasRendererRef.current ?? undefined,
         }).addTo(map);
       } else {
         ghostMarkerRef.current.setLatLng([p.lat, p.lon]);

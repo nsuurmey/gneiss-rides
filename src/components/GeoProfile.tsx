@@ -122,18 +122,17 @@ export default function GeoProfile({
         .attr('opacity', 0.3);
     }
 
-    // Elevation area
-    const area = d3
-      .area<EnrichedPoint>()
+    // Elevation line only — no fill so geology bands show true color
+    const line = d3
+      .line<EnrichedPoint>()
       .x((p) => xScale(convertDistance(p.distance, units)))
-      .y0(innerH)
-      .y1((p) => yScale(convertElevation(p.elevation, units)))
+      .y((p) => yScale(convertElevation(p.elevation, units)))
       .curve(d3.curveMonotoneX);
 
     g.append('path')
       .datum(points)
-      .attr('d', area)
-      .attr('fill', 'rgba(16, 185, 129, 0.4)')
+      .attr('d', line)
+      .attr('fill', 'none')
       .attr('stroke', '#10b981')
       .attr('stroke-width', 1.5);
 
