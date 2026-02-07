@@ -1,7 +1,5 @@
 # Gneiss Rides
 
-![Gneiss Rides](https://raw.githubusercontent.com/nsuurmey/gneiss-rides/main/midjourney-gneiss-rides.png)
-
 A client-side web app that overlays your cycling ride data onto geologic maps. Upload a TCX file and see your route colored by the underlying geology, with an elevation profile showing geologic formations along the way.
 
 
