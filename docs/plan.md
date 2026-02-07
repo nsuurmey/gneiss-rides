@@ -28,18 +28,21 @@ gneiss-rides/
 │   ├── components/
 │   │   ├── FileDropzone.tsx      # drag-and-drop upload
 │   │   ├── LoadingScreen.tsx     # processing state with geo-themed messages
-│   │   ├── MapView.tsx           # Leaflet map with geologic overlay
-│   │   ├── GeoProfile.tsx        # D3 elevation/geology graph
-│   │   ├── Legend.tsx            # color legend for age or lithology
+│   │   ├── MapView.tsx           # Leaflet map with geologic overlay + ghost marker
+│   │   ├── GeoProfile.tsx        # D3 elevation/geology graph + scrubber line
+│   │   ├── Legend.tsx            # color legend (Age | Formation format)
 │   │   ├── ControlBar.tsx        # toggles, unit selectors
 │   │   └── ExportButton.tsx      # trigger high-res render
+│   ├── hooks/
+│   │   └── useActivePoint.ts     # shared activePoint state (observer pattern)
 │   ├── lib/
 │   │   ├── parseTcx.ts           # TCX → TrackPoint[]
 │   │   ├── parseGpx.ts           # GPX → TrackPoint[] (fallback)
 │   │   ├── downsample.ts         # reduce points for API limits
 │   │   ├── haversine.ts          # distance calc (Haversine formula)
 │   │   ├── macrostrat.ts         # fetch geology per coordinate
-│   │   └── exportImage.ts        # render dashboard to PNG
+│   │   ├── forwardFill.ts        # zero-order hold geology fill logic
+│   │   └── exportImage.ts        # render dashboard to PNG (fit-to-bounds)
 │   ├── types/
 │   │   └── index.ts              # shared TypeScript interfaces
 │   └── styles/
@@ -65,6 +68,7 @@ interface TrackPoint {
 }
 
 interface GeoUnit {
+  unitId: number;         // Macrostrat unit_id (used for transition detection)
   formationName: string;
   interval: string;       // e.g. "Cretaceous"
   lithology: string;      // e.g. "Sandstone"
@@ -76,6 +80,12 @@ interface GeoUnit {
 
 interface EnrichedPoint extends TrackPoint {
   geology: GeoUnit | null;
+}
+
+// V3: shared cursor state for bi-directional linked tooltips
+interface ActivePointState {
+  index: number | null;    // index into EnrichedPoint[]
+  source: 'map' | 'graph' | null;
 }
 ```
 
@@ -122,6 +132,27 @@ interface EnrichedPoint extends TrackPoint {
 - [ ] White/null sections for unmapped coordinates
 - [ ] Download trigger with filename based on ride date
 
+### 8. Bi-Directional Linked Tooltips (V3)
+- [ ] Create shared `activePoint` state via `useActivePoint` hook (observer pattern)
+- [ ] Graph-to-Map: hovering on elevation profile shows ghost marker at corresponding GPS location
+- [ ] Map-to-Graph: hovering on ride path shows vertical scrubber line on graph at matching distance
+- [ ] Broadcast point index/timestamp from source component; update complementary component in real-time
+
+### 9. Continuous Geology Shading — Forward Fill (V3)
+- [ ] Implement zero-order hold: carry previous formation color forward until a new `unit_id` appears
+- [ ] Render geology backgrounds as continuous polygons instead of individual bars
+- [ ] Trigger color transitions only where API data indicates a different `unit_id`
+- [ ] When API returns "No Data", stop shading (transparent/white) until valid data reappears
+
+### 10. Legend Hierarchy Refinement (V3)
+- [ ] Change legend label format to `[Geologic Age] | [Formation Name]` (e.g. "Cretaceous | Dakota Sandstone")
+
+### 11. Export Bug Fixes (V3)
+- [ ] Fix path disappearing/shifting: force path re-render using exact map bounding box at capture time
+- [ ] Lock path overlay CRS to base layer during `toBlob()` / `toDataURL()` conversion
+- [ ] Fix black borders: calculate ride bounding box + 10% buffer and set canvas dimensions to match ride aspect ratio
+- [ ] Crop final output to min/max lat/lon of ride (fit-to-bounds logic)
+
 ## Phases
 
 ### Phase 1 — MVP
@@ -160,6 +191,23 @@ Goal: Complete feature set, export capability, and UX refinements.
 | 21 | Error handling & edge cases | across all files |
 | 22 | Unit & component tests | `src/**/*.test.ts(x)` |
 
+### Phase 3 — V3 (Synchronized Views & Export Stability)
+
+Goal: Synchronized map/graph interaction, continuous geology shading, legend refinement, and production-quality export.
+
+| # | Task | Files |
+|---|------|-------|
+| 23 | Shared `activePoint` hook (observer pattern) | `src/hooks/useActivePoint.ts`, `src/types/index.ts` |
+| 24 | Graph-to-Map ghost marker on hover | `src/components/MapView.tsx`, `src/components/GeoProfile.tsx` |
+| 25 | Map-to-Graph vertical scrubber on hover | `src/components/GeoProfile.tsx`, `src/components/MapView.tsx` |
+| 26 | Forward-fill geology shading (zero-order hold) | `src/lib/forwardFill.ts`, `src/components/GeoProfile.tsx` |
+| 27 | Continuous polygon rendering for geology bands | `src/components/GeoProfile.tsx` |
+| 28 | No-data gap handling (transparent until valid data) | `src/lib/forwardFill.ts` |
+| 29 | Legend label format: Age \| Formation | `src/components/Legend.tsx` |
+| 30 | Export fix: path re-render with locked CRS at capture | `src/lib/exportImage.ts`, `src/components/MapView.tsx` |
+| 31 | Export fix: fit-to-bounds cropping (ride bbox + 10% buffer) | `src/lib/exportImage.ts` |
+| 32 | V3 integration tests | `src/**/*.test.ts(x)` |
+
 ## API Reference
 
 **Macrostrat Geologic Units**
@@ -172,3 +220,8 @@ Returns formation name, age interval, lithology, and USGS color codes.
 - All GPS processing happens client-side (no server storage of user data).
 - Standard 2-hour ride file must process in under 3 seconds.
 - Output must be statically hostable (no backend required).
+
+## V3 Success Metrics
+- **Visual Accuracy:** 100% color continuity on geology bar for contiguous formations.
+- **Export Fidelity:** Zero reported cases of path shifting in user-generated images.
+- **Engagement:** Increased Export button usage due to improved aesthetic quality.
