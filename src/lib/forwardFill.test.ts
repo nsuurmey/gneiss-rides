@@ -3,6 +3,7 @@ import { forwardFillGeology } from './forwardFill';
 import { EnrichedPoint, GeoUnit } from '../types';
 
 const GEO_A: GeoUnit = {
+  unitId: 1001,
   formationName: 'Fountain',
   interval: 'Pennsylvanian',
   lithology: 'Sandstone',
@@ -13,6 +14,7 @@ const GEO_A: GeoUnit = {
 };
 
 const GEO_B: GeoUnit = {
+  unitId: 1002,
   formationName: 'Lyons',
   interval: 'Permian',
   lithology: 'Sandstone',

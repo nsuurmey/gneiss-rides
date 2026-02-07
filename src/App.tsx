@@ -6,6 +6,7 @@ import GeoProfile from './components/GeoProfile';
 import Legend from './components/Legend';
 import ControlBar from './components/ControlBar';
 import ExportButton from './components/ExportButton';
+import FossilSidebar from './components/FossilSidebar';
 import { parseTcx } from './lib/parseTcx';
 import { parseGpx } from './lib/parseGpx';
 import { enrichWithGeology } from './lib/macrostrat';
@@ -30,6 +31,9 @@ export default function App() {
 
   // Phase 3: shared active-point store for synchronized views
   const activePointStore = useActivePointStore();
+
+  // Phase 4: fossil sidebar
+  const [showFossils, setShowFossils] = useState(false);
 
   const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +71,7 @@ export default function App() {
   const reset = () => {
     setPoints([]);
     setErrorMsg('');
+    setShowFossils(false);
     setState('upload');
   };
 
@@ -119,6 +124,8 @@ export default function App() {
           onUnitsChange={setUnits}
           showHeartRate={showHeartRate}
           onShowHeartRateChange={setShowHeartRate}
+          showFossils={showFossils}
+          onShowFossilsChange={setShowFossils}
         />
         <label className="flex items-center gap-2 text-xs text-gray-400">
           Path opacity
@@ -134,13 +141,21 @@ export default function App() {
         </label>
       </div>
 
-      {/* Map */}
-      <div className="flex-1 min-h-0">
-        <MapView
+      {/* Map + Fossil Sidebar */}
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 min-w-0">
+          <MapView
+            points={points}
+            colorMode={colorMode}
+            opacity={mapOpacity}
+            activePointStore={activePointStore}
+          />
+        </div>
+        <FossilSidebar
           points={points}
-          colorMode={colorMode}
-          opacity={mapOpacity}
           activePointStore={activePointStore}
+          open={showFossils}
+          onClose={() => setShowFossils(false)}
         />
       </div>
 

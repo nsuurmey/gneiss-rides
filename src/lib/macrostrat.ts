@@ -21,6 +21,7 @@ async function fetchGeoUnit(lat: number, lon: number): Promise<GeoUnit | null> {
 
   const f = features[0];
   return {
+    unitId: f.unit_id ?? 0,
     formationName: f.unit_name ?? f.strat_name ?? 'Unknown',
     interval: f.t_int_name ?? f.Tseries ?? 'Unknown',
     lithology: f.lith ?? f.rocktype ?? 'Unknown',

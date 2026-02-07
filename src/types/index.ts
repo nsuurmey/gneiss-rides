@@ -8,6 +8,7 @@ export interface TrackPoint {
 }
 
 export interface GeoUnit {
+  unitId: number; // Macrostrat unit_id (used for transition detection)
   formationName: string;
   interval: string; // e.g. "Cretaceous"
   lithology: string; // e.g. "Sandstone"
@@ -47,4 +48,26 @@ export function distanceLabel(units: Units): string {
 
 export function elevationLabel(units: Units): string {
   return units === 'metric' ? 'm' : 'ft';
+}
+
+// V4: Paleobiology Database types
+export type FossilKingdom = 'Vertebrate' | 'Invertebrate' | 'Plant';
+
+export interface FossilOccurrence {
+  occurrenceId: number;
+  taxonName: string;
+  classification: string; // e.g. "Invertebrate | Brachiopod"
+  kingdom: FossilKingdom;
+  pbdbUrl: string;
+}
+
+export interface FossilQuery {
+  lngMin: number;
+  lngMax: number;
+  latMin: number;
+  latMax: number;
+  minMa: number;
+  maxMa: number;
+  formation?: string;
+  stratGroup?: string;
 }

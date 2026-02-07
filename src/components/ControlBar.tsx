@@ -7,6 +7,8 @@ interface Props {
   onUnitsChange: (units: Units) => void;
   showHeartRate: boolean;
   onShowHeartRateChange: (show: boolean) => void;
+  showFossils: boolean;
+  onShowFossilsChange: (show: boolean) => void;
 }
 
 export default function ControlBar({
@@ -16,6 +18,8 @@ export default function ControlBar({
   onUnitsChange,
   showHeartRate,
   onShowHeartRateChange,
+  showFossils,
+  onShowFossilsChange,
 }: Props) {
   return (
     <div className="flex items-center gap-4 flex-wrap text-sm">
@@ -54,6 +58,17 @@ export default function ControlBar({
           className="accent-emerald-500"
         />
         Heart rate
+      </label>
+
+      {/* Task 34: Discover Fossils lazy-load toggle */}
+      <label className="flex items-center gap-1.5 text-gray-300 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={showFossils}
+          onChange={(e) => onShowFossilsChange(e.target.checked)}
+          className="accent-amber-500"
+        />
+        Discover Fossils
       </label>
     </div>
   );
