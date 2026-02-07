@@ -10,17 +10,54 @@ import {
   distanceLabel,
   elevationLabel,
 } from '../types';
+import { ActivePointStore, useActivePoint, useSetActivePoint } from '../hooks/useActivePoint';
 
 interface Props {
   points: EnrichedPoint[];
   colorMode: ColorMode;
   units: Units;
   showHeartRate: boolean;
+  activePointStore: ActivePointStore;
 }
 
-export default function GeoProfile({ points, colorMode, units, showHeartRate }: Props) {
+/** Group consecutive points by geology color into continuous runs. */
+function buildGeoRuns(
+  points: EnrichedPoint[],
+  colorMode: ColorMode,
+): { startIdx: number; endIdx: number; color: string }[] {
+  if (points.length === 0) return [];
+  const runs: { startIdx: number; endIdx: number; color: string }[] = [];
+  let currentColor = getGeoColor(points[0].geology, colorMode);
+  let startIdx = 0;
+
+  for (let i = 1; i < points.length; i++) {
+    const c = getGeoColor(points[i].geology, colorMode);
+    if (c !== currentColor) {
+      runs.push({ startIdx, endIdx: i, color: currentColor });
+      currentColor = c;
+      startIdx = i;
+    }
+  }
+  runs.push({ startIdx, endIdx: points.length - 1, color: currentColor });
+  return runs;
+}
+
+export default function GeoProfile({
+  points,
+  colorMode,
+  units,
+  showHeartRate,
+  activePointStore,
+}: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const setActivePoint = useSetActivePoint(activePointStore);
+  const activeIdx = useActivePoint(activePointStore);
+
+  // Store scales in refs so the scrubber effect can use them
+  const xScaleRef = useRef<d3.ScaleLinear<number, number> | null>(null);
+  const marginRef = useRef({ top: 20, right: 20, bottom: 40, left: 50 });
+  const innerHRef = useRef(0);
 
   useEffect(() => {
     if (!svgRef.current || points.length === 0) return;
@@ -34,6 +71,8 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
     const margin = { top: 20, right: showHeartRate ? 55 : 20, bottom: 40, left: 50 };
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
+    marginRef.current = margin;
+    innerHRef.current = innerH;
 
     svg.attr('width', width).attr('height', height);
 
@@ -44,6 +83,7 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
       .scaleLinear()
       .domain([0, d3.max(points, (p) => convertDistance(p.distance, units)) ?? 1])
       .range([0, innerW]);
+    xScaleRef.current = xScale;
 
     const yScale = d3
       .scaleLinear()
@@ -54,19 +94,31 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
       .nice()
       .range([innerH, 0]);
 
-    // Geology color bands
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const color = getGeoColor(curr.geology, colorMode);
-      const x1 = xScale(convertDistance(prev.distance, units));
-      const x2 = xScale(convertDistance(curr.distance, units));
-      g.append('rect')
-        .attr('x', x1)
-        .attr('y', 0)
-        .attr('width', Math.max(x2 - x1, 0.5))
-        .attr('height', innerH)
-        .attr('fill', color)
+    // Task 27: Continuous polygon rendering for geology bands
+    // Each run is a polygon: top edge follows the elevation line, bottom is y=innerH
+    const geoRuns = buildGeoRuns(points, colorMode);
+    for (const run of geoRuns) {
+      // No-data gap handling (task 28): #888888 means null geology — render transparent
+      if (run.color === '#888888') continue;
+
+      const slice = points.slice(run.startIdx, run.endIdx + 1);
+      const polyPoints: [number, number][] = [];
+
+      // Top edge: follows elevation
+      for (const p of slice) {
+        polyPoints.push([
+          xScale(convertDistance(p.distance, units)),
+          yScale(convertElevation(p.elevation, units)),
+        ]);
+      }
+      // Bottom edge: flat at innerH, reversed
+      for (let j = slice.length - 1; j >= 0; j--) {
+        polyPoints.push([xScale(convertDistance(slice[j].distance, units)), innerH]);
+      }
+
+      g.append('polygon')
+        .attr('points', polyPoints.map((pt) => pt.join(',')).join(' '))
+        .attr('fill', run.color)
         .attr('opacity', 0.3);
     }
 
@@ -111,7 +163,6 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
         .attr('stroke-width', 1.2)
         .attr('opacity', 0.7);
 
-      // Right axis
       const hrAxis = g
         .append('g')
         .attr('transform', `translate(${innerW},0)`)
@@ -162,20 +213,22 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
     svg.selectAll('.tick line').attr('stroke', '#4b5563');
     svg.selectAll('.domain').attr('stroke', '#4b5563');
 
-    // Tooltip hover overlay
-    const tooltip = d3.select(tooltipRef.current);
-    const bisect = d3.bisector<EnrichedPoint, number>((p) =>
-      convertDistance(p.distance, units),
-    ).left;
-
-    const hoverLine = g
+    // Scrubber line (used by both local hover and external activeIdx)
+    const scrubLine = g
       .append('line')
+      .attr('class', 'scrub-line')
       .attr('y1', 0)
       .attr('y2', innerH)
       .attr('stroke', '#ffffff')
       .attr('stroke-width', 1)
       .attr('opacity', 0)
       .attr('pointer-events', 'none');
+
+    // Tooltip hover overlay
+    const tooltip = d3.select(tooltipRef.current);
+    const bisect = d3.bisector<EnrichedPoint, number>((p) =>
+      convertDistance(p.distance, units),
+    ).left;
 
     g.append('rect')
       .attr('width', innerW)
@@ -184,13 +237,13 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
       .on('mousemove', (event: MouseEvent) => {
         const [mx] = d3.pointer(event);
         const dist = xScale.invert(mx);
-        const idx = Math.min(
-          bisect(points, dist),
-          points.length - 1,
-        );
+        const idx = Math.min(bisect(points, dist), points.length - 1);
         const p = points[idx];
 
-        hoverLine.attr('x1', mx).attr('x2', mx).attr('opacity', 0.6);
+        // Notify map via shared store (task 24: graph-to-map)
+        setActivePoint(idx);
+
+        scrubLine.attr('x1', mx).attr('x2', mx).attr('opacity', 0.6);
 
         const elev = convertElevation(p.elevation, units);
         const dVal = convertDistance(p.distance, units);
@@ -209,10 +262,27 @@ export default function GeoProfile({ points, colorMode, units, showHeartRate }: 
           .style('top', `${event.offsetY - 10}px`);
       })
       .on('mouseleave', () => {
-        hoverLine.attr('opacity', 0);
+        setActivePoint(null);
+        scrubLine.attr('opacity', 0);
         tooltip.style('opacity', '0');
       });
-  }, [points, colorMode, units, showHeartRate]);
+  }, [points, colorMode, units, showHeartRate, setActivePoint]);
+
+  // Task 25: Map-to-Graph vertical scrubber — react to external activeIdx changes
+  useEffect(() => {
+    if (!svgRef.current || !xScaleRef.current) return;
+    const svg = d3.select(svgRef.current);
+    const scrubLine = svg.select('.scrub-line');
+    if (scrubLine.empty()) return;
+
+    if (activeIdx != null && activeIdx >= 0 && activeIdx < points.length) {
+      const p = points[activeIdx];
+      const xPos = xScaleRef.current(convertDistance(p.distance, units));
+      scrubLine.attr('x1', xPos).attr('x2', xPos).attr('opacity', 0.6);
+    } else {
+      scrubLine.attr('opacity', 0);
+    }
+  }, [activeIdx, points, units]);
 
   return (
     <div className="relative">
