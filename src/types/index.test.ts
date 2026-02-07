@@ -9,6 +9,7 @@ import {
 } from './index';
 
 const SAMPLE_GEO: GeoUnit = {
+  unitId: 1001,
   formationName: 'Fountain',
   interval: 'Pennsylvanian',
   lithology: 'Sandstone',

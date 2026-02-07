@@ -5,6 +5,11 @@ interface Props {
   colorMode: ColorMode;
 }
 
+/** Format label as "Age | Formation" (task 29). */
+function formatLabel(unit: GeoUnit): string {
+  return `${unit.interval} | ${unit.formationName}`;
+}
+
 export default function Legend({ points, colorMode }: Props) {
   // Collect unique geologic units by formation name
   const unitMap = new Map<string, GeoUnit>();
@@ -28,10 +33,8 @@ export default function Legend({ points, colorMode }: Props) {
             className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
             style={{ backgroundColor: getGeoColor(u, colorMode) }}
           />
-          <span className="font-medium">{u.formationName}</span>
-          <span className="text-gray-500">
-            {u.interval} &middot; {u.lithology}
-          </span>
+          <span className="font-medium">{formatLabel(u)}</span>
+          <span className="text-gray-500">{u.lithology}</span>
         </div>
       ))}
     </div>
