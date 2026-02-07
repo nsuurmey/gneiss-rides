@@ -2,6 +2,9 @@
 
 A client-side web app that overlays your cycling ride data onto geologic maps. Upload a TCX file and see your route colored by the underlying geology, with an elevation profile showing geologic formations along the way.
 
+
+![Alt text](midjourney-gneiss-rides.png)
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) v18 or later
