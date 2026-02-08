@@ -133,9 +133,17 @@ export default function FossilSidebar({ points, activePointStore, open, onClose 
         )}
 
         {!loading && !error && filtered.length === 0 && (
-          <p className="text-xs text-gray-500">
-            {activeIdx == null ? 'Hover over the map or profile to discover fossils.' : 'No fossil occurrences found for this location.'}
-          </p>
+          <div className="text-xs text-gray-500">
+            {activeIdx == null ? (
+              <div className="flex flex-col items-center gap-2 py-4 text-center">
+                <span className="text-2xl">🦴</span>
+                <p className="text-gray-400 font-medium">Hover over the map or elevation profile</p>
+                <p>Move your cursor over your ride route to discover fossils that once lived in the geology beneath your wheels.</p>
+              </div>
+            ) : (
+              <p>No fossil occurrences found for this location.</p>
+            )}
+          </div>
         )}
 
         {/* Taxa list */}

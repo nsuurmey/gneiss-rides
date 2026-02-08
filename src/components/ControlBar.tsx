@@ -61,15 +61,16 @@ export default function ControlBar({
       </label>
 
       {/* Task 34: Discover Fossils lazy-load toggle */}
-      <label className="flex items-center gap-1.5 text-gray-300 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={showFossils}
-          onChange={(e) => onShowFossilsChange(e.target.checked)}
-          className="accent-amber-500"
-        />
-        Discover Fossils
-      </label>
+      <button
+        onClick={() => onShowFossilsChange(!showFossils)}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-colors ${
+          showFossils
+            ? 'bg-amber-600 text-white'
+            : 'bg-amber-600/20 text-amber-400 border border-amber-600/50 hover:bg-amber-600/30'
+        }`}
+      >
+        {showFossils ? '🦴 Fossils On' : '🦴 Discover Fossils'}
+      </button>
     </div>
   );
 }

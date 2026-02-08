@@ -99,7 +99,7 @@ You should see the Gneiss Rides upload page.
    - **Map** — Your ride path colored by geologic age
    - **Elevation profile** — Distance vs. elevation with geologic color bands
    - **Legend** — Formation names, intervals, and lithology
-   - **Fossil Sidebar** (V4) — Toggle "Discover Fossils" to load fossil data from PBDB
+   - **Fossil Sidebar** (V4) — Click the **"Discover Fossils"** button in the control bar (it's amber-colored, hard to miss), then **hover your cursor over the map or elevation profile** to see fossils for each formation
 5. **Export** — Click the export button to save the dashboard as a PNG image
 
 ### Stopping and restarting
