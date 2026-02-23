@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gneiss Rides</title>
+    <!-- Restrict resource origins; inline styles allowed for Leaflet/D3 -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob: https://*.tile.openstreetmap.org;
+      connect-src 'self' https://macrostrat.org https://pbdb.org;
+      font-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-src 'none';
+      worker-src 'none';
+    " />
+    <!-- Limit referrer info sent to external sites -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
   </head>
   <body class="m-0 p-0 bg-gray-900 text-white">
     <div id="root"></div>

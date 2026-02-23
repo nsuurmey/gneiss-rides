@@ -16,6 +16,11 @@ export default function FileDropzone({ onFileLoaded }: Props) {
         setError('Please upload a .tcx or .gpx file.');
         return;
       }
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+      if (file.size > MAX_FILE_SIZE) {
+        setError('File is too large. Maximum size is 10 MB.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === 'string') {
