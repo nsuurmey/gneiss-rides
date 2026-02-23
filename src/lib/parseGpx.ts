@@ -31,6 +31,8 @@ export function parseGpx(xml: string): TrackPoint[] {
     const lon = parseFloat(pt.getAttribute('lon') ?? '0');
 
     if (lat === 0 && lon === 0) continue;
+    if (!isFinite(lat) || !isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
+      continue;
 
     const eleEl = pt.getElementsByTagName('ele')[0];
     const timeEl = pt.getElementsByTagName('time')[0];

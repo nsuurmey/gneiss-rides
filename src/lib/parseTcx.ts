@@ -33,6 +33,8 @@ export function parseTcx(xml: string): TrackPoint[] {
 
     const lat = parseFloat(latEl.textContent ?? '0');
     const lon = parseFloat(lonEl.textContent ?? '0');
+    if (!isFinite(lat) || !isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
+      continue;
     const elevation = eleEl ? parseFloat(eleEl.textContent ?? '0') : 0;
     const time = timeEl?.textContent ?? '';
     const heartRate = hrEl ? parseInt(hrEl.textContent ?? '0', 10) : undefined;
