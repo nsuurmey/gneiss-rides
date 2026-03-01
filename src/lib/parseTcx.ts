@@ -27,8 +27,6 @@ export function parseTcx(xml: string): TrackPoint[] {
     const lonEl = tp.getElementsByTagName('LongitudeDegrees')[0];
     const eleEl = tp.getElementsByTagName('AltitudeMeters')[0];
     const timeEl = tp.getElementsByTagName('Time')[0];
-    const hrEl = tp.getElementsByTagName('Value')[0]; // inside HeartRateBpm
-
     if (!latEl || !lonEl) continue; // skip points without GPS
 
     const lat = parseFloat(latEl.textContent ?? '0');
@@ -37,14 +35,13 @@ export function parseTcx(xml: string): TrackPoint[] {
       continue;
     const elevation = eleEl ? parseFloat(eleEl.textContent ?? '0') : 0;
     const time = timeEl?.textContent ?? '';
-    const heartRate = hrEl ? parseInt(hrEl.textContent ?? '0', 10) : undefined;
 
     if (points.length > 0) {
       const prev = points[points.length - 1];
       cumDistance += haversine(prev.lat, prev.lon, lat, lon);
     }
 
-    points.push({ lat, lon, elevation, time, heartRate, distance: cumDistance });
+    points.push({ lat, lon, elevation, time, distance: cumDistance });
   }
 
   if (points.length === 0) {

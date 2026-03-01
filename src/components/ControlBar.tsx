@@ -5,8 +5,6 @@ interface Props {
   onColorModeChange: (mode: ColorMode) => void;
   units: Units;
   onUnitsChange: (units: Units) => void;
-  showHeartRate: boolean;
-  onShowHeartRateChange: (show: boolean) => void;
   showFossils: boolean;
   onShowFossilsChange: (show: boolean) => void;
 }
@@ -16,8 +14,6 @@ export default function ControlBar({
   onColorModeChange,
   units,
   onUnitsChange,
-  showHeartRate,
-  onShowHeartRateChange,
   showFossils,
   onShowFossilsChange,
 }: Props) {
@@ -47,17 +43,6 @@ export default function ControlBar({
           <option value="metric">Metric (km / m)</option>
           <option value="imperial">Imperial (mi / ft)</option>
         </select>
-      </label>
-
-      {/* Heart rate toggle */}
-      <label className="flex items-center gap-1.5 text-gray-300 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={showHeartRate}
-          onChange={(e) => onShowHeartRateChange(e.target.checked)}
-          className="accent-emerald-500"
-        />
-        Heart rate
       </label>
 
       {/* Task 34: Discover Fossils lazy-load toggle */}

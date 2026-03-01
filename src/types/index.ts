@@ -3,7 +3,6 @@ export interface TrackPoint {
   lon: number;
   elevation: number; // meters
   time: string; // ISO timestamp
-  heartRate?: number;
   distance: number; // cumulative, km
 }
 
