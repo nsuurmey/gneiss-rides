@@ -16,7 +16,6 @@ interface Props {
   points: EnrichedPoint[];
   colorMode: ColorMode;
   units: Units;
-  showHeartRate: boolean;
   activePointStore: ActivePointStore;
 }
 
@@ -46,7 +45,6 @@ export default function GeoProfile({
   points,
   colorMode,
   units,
-  showHeartRate,
   activePointStore,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -68,7 +66,7 @@ export default function GeoProfile({
     const container = svgRef.current.parentElement;
     const width = container?.clientWidth ?? 800;
     const height = 280;
-    const margin = { top: 20, right: showHeartRate ? 55 : 20, bottom: 40, left: 50 };
+    const margin = { top: 20, right: 20, bottom: 40, left: 50 };
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
     marginRef.current = margin;
@@ -136,52 +134,6 @@ export default function GeoProfile({
       .attr('stroke', '#10b981')
       .attr('stroke-width', 1.5);
 
-    // Heart rate secondary axis
-    const hasHR = showHeartRate && points.some((p) => p.heartRate != null);
-    if (hasHR) {
-      const hrMax = d3.max(points, (p) => p.heartRate ?? 0) ?? 200;
-      const hrMin = d3.min(points, (p) => p.heartRate ?? hrMax) ?? 60;
-      const hrScale = d3
-        .scaleLinear()
-        .domain([hrMin, hrMax])
-        .nice()
-        .range([innerH, 0]);
-
-      const hrLine = d3
-        .line<EnrichedPoint>()
-        .defined((p) => p.heartRate != null)
-        .x((p) => xScale(convertDistance(p.distance, units)))
-        .y((p) => hrScale(p.heartRate ?? 0))
-        .curve(d3.curveMonotoneX);
-
-      g.append('path')
-        .datum(points)
-        .attr('d', hrLine)
-        .attr('fill', 'none')
-        .attr('stroke', '#ef4444')
-        .attr('stroke-width', 1.2)
-        .attr('opacity', 0.7);
-
-      const hrAxis = g
-        .append('g')
-        .attr('transform', `translate(${innerW},0)`)
-        .call(d3.axisRight(hrScale).ticks(5));
-
-      hrAxis.selectAll('.tick text').attr('fill', '#ef4444');
-      hrAxis.selectAll('.tick line').attr('stroke', '#4b5563');
-      hrAxis.select('.domain').attr('stroke', '#4b5563');
-
-      hrAxis
-        .append('text')
-        .attr('transform', 'rotate(90)')
-        .attr('x', innerH / 2)
-        .attr('y', -45)
-        .attr('fill', '#ef4444')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '11px')
-        .text('Heart Rate (bpm)');
-    }
-
     // Bottom axis
     g.append('g')
       .attr('transform', `translate(0,${innerH})`)
@@ -204,10 +156,9 @@ export default function GeoProfile({
       .attr('text-anchor', 'middle')
       .text(`Elevation (${elevationLabel(units)})`);
 
-    // Style axis text (skip HR axis which is already red)
+    // Style axis text
     svg.selectAll('.tick text').each(function () {
-      const el = d3.select(this);
-      if (el.attr('fill') !== '#ef4444') el.attr('fill', '#9ca3af');
+      d3.select(this).attr('fill', '#9ca3af');
     });
     svg.selectAll('.tick line').attr('stroke', '#4b5563');
     svg.selectAll('.domain').attr('stroke', '#4b5563');
@@ -248,7 +199,6 @@ export default function GeoProfile({
         const dVal = convertDistance(p.distance, units);
         let html = `<strong>${dVal.toFixed(1)} ${distanceLabel(units)}</strong><br/>`;
         html += `Elev: ${elev.toFixed(0)} ${elevationLabel(units)}`;
-        if (p.heartRate != null) html += `<br/>HR: ${p.heartRate} bpm`;
         if (p.geology) {
           html += `<br/><span style="color:${getGeoColor(p.geology, colorMode)}">&#9632;</span> ${p.geology.formationName}`;
           html += `<br/>${p.geology.interval} &middot; ${p.geology.lithology}`;
@@ -265,7 +215,7 @@ export default function GeoProfile({
         scrubLine.attr('opacity', 0);
         tooltip.style('opacity', '0');
       });
-  }, [points, colorMode, units, showHeartRate, setActivePoint]);
+  }, [points, colorMode, units, setActivePoint]);
 
   // Task 25: Map-to-Graph vertical scrubber — react to external activeIdx changes
   useEffect(() => {

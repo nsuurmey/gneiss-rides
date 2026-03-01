@@ -37,21 +37,15 @@ export function parseGpx(xml: string): TrackPoint[] {
     const eleEl = pt.getElementsByTagName('ele')[0];
     const timeEl = pt.getElementsByTagName('time')[0];
 
-    // GPX extensions can carry heart rate in several ways
-    const hrEl =
-      pt.getElementsByTagName('gpxtpx:hr')[0] ??
-      pt.getElementsByTagName('hr')[0];
-
     const elevation = eleEl ? parseFloat(eleEl.textContent ?? '0') : 0;
     const time = timeEl?.textContent ?? '';
-    const heartRate = hrEl ? parseInt(hrEl.textContent ?? '0', 10) : undefined;
 
     if (points.length > 0) {
       const prev = points[points.length - 1];
       cumDistance += haversine(prev.lat, prev.lon, lat, lon);
     }
 
-    points.push({ lat, lon, elevation, time, heartRate, distance: cumDistance });
+    points.push({ lat, lon, elevation, time, distance: cumDistance });
   }
 
   if (points.length === 0) {

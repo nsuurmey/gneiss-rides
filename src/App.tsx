@@ -27,7 +27,6 @@ export default function App() {
   const [colorMode, setColorMode] = useState<ColorMode>('age');
   const [units, setUnits] = useState<Units>('metric');
   const [mapOpacity, setMapOpacity] = useState(0.85);
-  const [showHeartRate, setShowHeartRate] = useState(false);
 
   // Phase 3: shared active-point store for synchronized views
   const activePointStore = useActivePointStore();
@@ -122,8 +121,6 @@ export default function App() {
           onColorModeChange={setColorMode}
           units={units}
           onUnitsChange={setUnits}
-          showHeartRate={showHeartRate}
-          onShowHeartRateChange={setShowHeartRate}
           showFossils={showFossils}
           onShowFossilsChange={setShowFossils}
         />
@@ -165,7 +162,6 @@ export default function App() {
           points={points}
           colorMode={colorMode}
           units={units}
-          showHeartRate={showHeartRate}
           activePointStore={activePointStore}
         />
         <Legend points={points} colorMode={colorMode} />
