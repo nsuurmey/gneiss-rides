@@ -165,6 +165,17 @@ export default function App() {
           activePointStore={activePointStore}
         />
         <Legend points={points} colorMode={colorMode} />
+        <div className="flex items-center gap-2 pt-1 border-t border-gray-700/50">
+          <span className="text-xs text-gray-500">Geologic data provided by</span>
+          <a
+            href="https://macrostrat.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity"
+          >
+            <img src="/macrostrat-logo.png" alt="Macrostrat" className="h-5 w-auto" />
+          </a>
+        </div>
       </div>
     </div>
   );
